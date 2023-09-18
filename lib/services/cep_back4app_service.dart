@@ -12,7 +12,7 @@ class CepBack4appService {
   final Map<String, String> _headers = {
     'X-Parse-Application-Id': Env.keyApplicationId,
     'X-Parse-REST-API-Key': Env.keyClientKey,
-    'Content-Type': 'application/json'
+     'Content-Type': 'application/json'
   };
 
   Future<List<Map<String, dynamic>>> getCepListBack4App() async {
@@ -24,7 +24,7 @@ class CepBack4appService {
 
     var result = await http.get(url, headers: _headers);
 
-    if (result.statusCode != 200) {
+    if (result.statusCode > 200) {
       throw Exception('Error com o a chamada http');
     }
 
@@ -33,21 +33,38 @@ class CepBack4appService {
     var responseMap = jsonDecode(result.body)
         as Map<String, dynamic>; // as List<Map<String, dynamic>>;
 
+    if (responseMap.containsKey('error')) {
+      throw Exception('Error com o a chamada back4app');
+    }
+
     if (responseMap.containsKey('results')) {
-      listResult = (responseMap['results'] as List<dynamic>).map((e) => e as Map<String, dynamic>).toList();
+      listResult = (responseMap['results'] as List<dynamic>)
+          .map((e) => e as Map<String, dynamic>)
+          .toList();
     }
 
     return listResult;
   }
 
-  Future<void> postCep(CepModel cepModel) async {
+  Future<void> deleteCep(CepModel cepModel) async {
+    Uri url = Uri(
+      scheme: _scheme,
+      host: _host,
+      path: '$_path/${cepModel.objectId}',
+    );
+    var result = await http.delete(url, headers: _headers);
+
+    debugPrint(result.toString());
+  }
+
+  Future<void> saveCep(CepModel cepModel) async {
     Uri url = Uri(
       scheme: _scheme,
       host: _host,
       path: _path,
     );
-    var result =
-        await http.post(url, body: cepModel.toJson(), headers: _headers);
-    debugPrint(result.toString());
+    var result = await http.post(url, body: jsonEncode( cepModel.toJson()), headers: _headers);
+
+    debugPrint(result.body.toString());
   }
 }

@@ -1,9 +1,8 @@
 import 'package:bootcamp_2023_dio_via_cep/controller/via_cep_controller.dart';
 import 'package:bootcamp_2023_dio_via_cep/model/cep_model.dart';
+import 'package:bootcamp_2023_dio_via_cep/pages/buscar_cep.dart';
 import 'package:bootcamp_2023_dio_via_cep/widgets/widgets.dart';
-import 'package:brasil_fields/brasil_fields.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
@@ -15,6 +14,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late final ViaCepController viaCepController;
+  PageController pageController = PageController();
+  int indexMenu = 0;
 
   @override
   void initState() {
@@ -27,12 +28,31 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: indexMenu,
+        onTap: (value) {
+          setState(() {
+            indexMenu = value;
+            pageController.animateToPage(value,
+                duration: const Duration(milliseconds: 600),
+                curve: Curves.linear);
+          });
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: 'Pesquisa',
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.list), label: 'CEPs'),
+        ],
+      ),
       appBar: AppBar(
         title: const Text('Consulta  CEP'),
       ),
       body: PageView(
+        controller: pageController,
         children: const [
-          BuscaCep(),
+          BuscarCep(),
           ListaCep(),
         ],
       ),
@@ -40,58 +60,46 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class ListaCep extends StatefulWidget {
+class ListaCep extends StatelessWidget {
   const ListaCep({super.key});
 
   @override
-  State<ListaCep> createState() => _ListaCepState();
-}
-
-class _ListaCepState extends State<ListaCep> {
-  @override
   Widget build(BuildContext context) {
     var controller = context.read<ViaCepController>();
 
-    return Container(
-      child: ListView.builder(
-        itemCount: controller.getListCep.length,
-        itemBuilder: (context, index) {
-          CepModel cepModel = controller.getListCep[index];
-          return CreateItemCep(cepModel);
-        },
-      ),
-    );
-  }
-}
-
-class BuscaCep extends StatelessWidget {
-  const BuscaCep({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    var controller = context.read<ViaCepController>();
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          createWidgetStatus(),
-          Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                child: TextField(
-                  onChanged: (String cep) {},
-                  controller: controller.cepController,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    CepInputFormatter(),
-                  ],
-                ),
-              ),
-              createWidgetStatusButton(),
-            ],
-          ),
-        ],
+    return ValueListenableBuilder(
+      valueListenable: controller.listCepModel,
+      builder: (context, listCepModel, child) => Container(
+        child: ListView.builder(
+          itemCount: listCepModel.length,
+          itemBuilder: (context, index) {
+            CepModel cepModel = listCepModel[index];
+            return CreateItemCep(cepModel,(){
+               showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        content: const Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [Text('Deseja Apagar o Cep?')],
+                        ),
+                        actions: [
+                          ElevatedButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: const Text('Cancelar')),
+                          ElevatedButton(
+                              onPressed: () {
+                                controller.deleteCep(cepModel);
+                                Navigator.pop(context);
+                              },
+                              child: const Text('OK')),
+                        ],
+                      ),
+                    );
+            });
+          },
+        ),
       ),
     );
   }

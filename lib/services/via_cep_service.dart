@@ -15,13 +15,14 @@ class ViaCepService {
 
     Response response = await http.get(url);
 
-    if (response.statusCode != 200) {
+    if (response.statusCode > 200) {
       throw Exception('Error com o a chamada http');
     }
 
     debugPrint(response.body);
 
     var responseMap = jsonDecode(response.body) as Map<String, dynamic>;
+
     debugPrint(responseMap.toString());
 
     return responseMap;

@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 class CepModel {
+  String objectId;
   String cep;
   String logradouro;
   String complemento;
@@ -11,6 +14,7 @@ class CepModel {
   String siafi;
 
   CepModel({
+    required this.objectId,
     required this.cep,
     required this.logradouro,
     required this.complemento,
@@ -23,8 +27,11 @@ class CepModel {
     required this.siafi,
   });
 
+  bool get isSave =>objectId.isNotEmpty;
+
   static CepModel empty() {
     return CepModel(
+        objectId: '',
         cep: '',
         logradouro: '',
         complemento: '',
@@ -38,7 +45,8 @@ class CepModel {
   }
 
   static CepModel fromJson(Map<String, dynamic> json) {
-    String cep = json['cep'];
+    String objectId = json['objectId'] ?? '';
+    String cep = json['cep']?.replaceAll(RegExp(r'[^0-9]'), '');
     String logradouro = json['logradouro'];
     String complemento = json['complemento'];
     String bairro = json['bairro'];
@@ -49,6 +57,7 @@ class CepModel {
     String ddd = json['ddd'];
     String siafi = json['siafi'];
     return CepModel(
+      objectId: objectId,
       cep: cep,
       logradouro: logradouro,
       complemento: complemento,
@@ -64,6 +73,7 @@ class CepModel {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
+    //data['objectId'] = objectId;
     data['cep'] = cep;
     data['logradouro'] = logradouro;
     data['complemento'] = complemento;
@@ -79,6 +89,14 @@ class CepModel {
 
   @override
   String toString() {
-    return 'CepModel(cep: $cep, logradouro: $logradouro, complemento: $complemento, bairro: $bairro, localidade: $localidade, uf: $uf, ibge: $ibge, gia: $gia, ddd: $ddd, siafi: $siafi)';
+    return 'CepModel(objectId: $objectId, cep: $cep, logradouro: $logradouro, complemento: $complemento, bairro: $bairro, localidade: $localidade, uf: $uf, ibge: $ibge, gia: $gia, ddd: $ddd, siafi: $siafi)';
   }
+
+
+
+
+
+
+
+
 }
